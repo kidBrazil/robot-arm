@@ -30,13 +30,11 @@ int Joy2XAngle;
 int Joy2YAngle;
 
 // Sent Angle
-int Joy1XSentAngle;
 int Joy1YSentAngle;
 int Joy2XSentAngle;
 int Joy2YSentAngle;
 
 // Last Angle
-int Joy1XLastAngle;
 int Joy1YLastAngle;
 int Joy2XLastAngle;
 int Joy2YLastAngle;
@@ -57,7 +55,6 @@ void setup() {
   ServoArmElbow.write(90);
   ServoArmGrasp.write(90);
   // Save angle as last angle
-  Joy1XLastAngle = 0;
   Joy1YLastAngle = 90;
   Joy2XLastAngle = 90;
   Joy2YLastAngle = 90;
@@ -66,40 +63,54 @@ void setup() {
 // Loop
 void loop() {
 //  // put your main code here, to run repeatedly:
-//  potValA = analogRead(potPin1);
-//  potValB = analogRead(potPin2);
-//  //Serial.print("PotVal 1: ");
-//  //Serial.println(potValA);
-//  Serial.print("PotVal 2: ");
-//  Serial.println(potValB);
-//
-//  angleA = map(potValA, 0, 1023, -10, 10);
-//  angleB = map(potValB, 0, 1020, -10, 10);
-//
-//  if ( (lastAngleA + angleA) > 179 ) {
-//    sentAngleA = 179;
-//  }
-//  else if ( (lastAngleA + angleA) < 0 ) {
-//    sentAngleA = 0;
-//  }
-//  else {
-//    sentAngleA = (lastAngleA + angleA);
-//  }
-//  if ( (lastAngleB + angleB) > 179 ) {
-//    sentAngleB = 179;
-//  }
-//  else if ( (lastAngleB + angleB) < 0 ) {
-//    sentAngleB = 0;
-//  }
-//  else {
-//    sentAngleB = (lastAngleB + angleB);
-//  }
-//  
-//  lastAngleA = sentAngleA; 
-//  lastAngleB = sentAngleB;
-//
-//  Servo1.write(sentAngleA);
-//  Servo2.write(sentAngleB);
-  ServoRotate.write(94);
-  delay(10);
+// Read Potentiometer values
+Joy1XValue = analogRead(Joy1X);
+Joy1YValue = analogRead(Joy1Y);
+Joy2XValue = analogRead(Joy2X);
+Joy2YValue = analogRead(Joy2Y);
+
+// Joystick 1 X  Base Rotation ----------------------------/
+Joy1XAngle = map(Joy1XValue, 0, 1023, 0, 190); // Map straight to Servo output
+ServoRotate.write(Joy1XAngle);
+
+// Joystick 1 Y  Arm Raise / Lower ----------------------------/
+Joy1YAngle = map(Joy1YValue, 0, 1023, -5, 5);
+Joy1YSentAngle = CheckLimits(Joy1YLastAngle, Joy1YAngle);
+// Write to servo
+ServoArmBase.write(Joy1YSentAngle);
+// Save Servo Position
+Joy1YLastAngle = Joy1YSentAngle;
+
+// Joystick 2 X Elbow Raise / Lower ----------------------------/
+Joy2XAngle = map(Joy2XValue, 0, 1000, -10, 10);
+Joy2XSentAngle = CheckLimits(Joy2XLastAngle, Joy2XAngle);
+// Write to servo
+ServoArmElbow.write(Joy2XSentAngle);
+// Save Servo Position
+Joy2XLastAngle = Joy2XSentAngle;
+
+// Joystick 1 Y  Arm Raise / Lower ----------------------------/
+Joy2YAngle = map(Joy2YValue, 0, 1023, -10, 10);
+Joy2YSentAngle = CheckLimits(Joy2YLastAngle, Joy2YAngle);
+// Write to servo
+ServoArmGrasp.write(Joy2YSentAngle);
+// Save Servo Position
+Joy2YLastAngle = Joy2YSentAngle;
+
+delay(30);
+}
+
+// Check to ensure limits are not passed on Servo
+int CheckLimits(int lastAngle, int newAngle) {
+  int returnAngle;
+  if ((lastAngle + newAngle) >= 180 ){
+    returnAngle = 180;
+  }
+  else if ((lastAngle + newAngle) <= 0 ) {
+    returnAngle = 0;
+  }
+  else {
+    returnAngle = lastAngle + newAngle;
+  }
+  return returnAngle;
 }
